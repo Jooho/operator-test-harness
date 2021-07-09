@@ -1,17 +1,17 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: nfs-manifests-test-job
-  namespace: nfs-operator-test-harness
+  name: manifests-test-job
+  namespace: operator-test-harness
   labels:
-    app:  nfs-manifests-test-job
+    app:  manifests-test-job
     test: osd-e2e-test
 spec:
   backoffLimit: 2
   completions: 1
   template:
     metadata:
-      name: nfs-manifests-test
+      name: manifests-test-pod
     spec:
       containers:
       - command:
@@ -21,14 +21,14 @@ spec:
         env:
         - name: PATH
           value: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-        - name: TEST_PROJECT
+        - name: TEST_NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
         - name: ARTIFACT_DIR
           value: /tmp/artifacts 
-        image: quay.io/jooholee/nfs-manifests-test:latest
-        name: nfs-manifests-test
+        image: quay.io/jooholee/manifests-test:latest
+        name: manifests-test
         resources: {}
         volumeMounts:
         - mountPath: /tmp/artifacts
@@ -37,4 +37,4 @@ spec:
       - emptyDir: {}
         name: artifacts
       restartPolicy: Never
-      serviceAccountName: nfs-operator-test-harness-sa
+      serviceAccountName: manifests-test-sa

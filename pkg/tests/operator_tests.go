@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/Jooho/operator-test-harness/pkg/metadata"
+	"github.com/Jooho/operator-test-harness/pkg/resources"
 	"github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -105,6 +107,61 @@ var _ = ginkgo.BeforeSuite(func() {
 	}
 })
 
+var _ = ginkgo.Describe("ISV Operator Tests", func() {
+
+	ginkgo.It("Kubernetes objects & Integration test (Jupyterhub)", func() {
+		resources.PrepareTest(config)
+		clientset, err := kubernetes.NewForConfig(config)
+		Expect(err).NotTo(HaveOccurred())
+		var checkErr error = nil
+		retry := 0
+
+		for {
+			job, err := clientset.BatchV1().Jobs("operator-test-harness").Get(context.Background(), "manifests-test-job", metav1.GetOptions{})
+			if err != nil {
+				//Failed
+				fmt.Printf("ERROR: Job is not created: %v", err)
+				checkErr = err
+				metadata.Instance.SucceedJobTest = false
+				if retry == 20 {
+					fmt.Println("ERROR: Timeout 20mins")
+					break
+				}
+			}
+			// fmt.Printf("job.Status.Succeeded: %d\n", job.Status.Succeeded)
+			// fmt.Printf("job.Status.Failed: %d\n", job.Status.Failed)
+			if job.Status.Succeeded >= 1 {
+				// Succeeded
+				metadata.Instance.SucceedJobTest = true
+				// fmt.Println("Job is successfully finished.")
+				break
+			}
+
+			if job.Status.Failed >= 2 {
+				checkErr = fmt.Errorf("ERROR: Job failed more than 2 times")
+				metadata.Instance.SucceedJobTest = false
+				if err := resources.WriteLogFromPod(job.Name, clientset); err != nil {
+					checkErr = fmt.Errorf("ERROR: Writing log failed")
+					break
+				}
+				break
+			}
+			fmt.Println("INFO: Job is not finished yet")
+			fmt.Printf("INFO: You waited for %d Mins\n", retry)
+			time.Sleep(1 * time.Minute)
+			retry++
+			fmt.Println("")
+			fmt.Println("---------------------")
+		}
+		if checkErr != nil {
+			fmt.Println("Job failed.")
+		} else {
+			fmt.Println("Job finished successfully.")
+		}
+		Expect(checkErr).NotTo(HaveOccurred())
+	})
+})
+
 var _ = ginkgo.Describe("Default Operator Tests:", func() {
 
 	ginkgo.It("nfsprovisioners.cache.jhouse.com CRD exists", func() {
@@ -112,7 +169,7 @@ var _ = ginkgo.Describe("Default Operator Tests:", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		// Make sure the CRD exists
-		_, err = apiextensions.ApiextensionsV1beta1().CustomResourceDefinitions().Get(context.TODO(), "nfsprovisioners.cache.jhouse.com", metav1.GetOptions{})
+		_, err = apiextensions.ApiextensionsV1().CustomResourceDefinitions().Get(context.TODO(), "nfsprovisioners.cache.jhouse.com", metav1.GetOptions{})
 
 		if err != nil {
 			metadata.Instance.FoundCRD = false
@@ -130,17 +187,17 @@ var _ = ginkgo.Describe("Default Operator Tests:", func() {
 		var checkErr error = nil
 		retry := 0
 
-		for retry <= 4 {
-			fmt.Printf("%d Retry to check pods status(every 1m)", retry)
+		for retry <= 8 {
+			fmt.Printf("%d Retry to check pods status(every 30s)\n", retry)
 			result, pod := CheckPodStatus(clientset)
 			if result {
 				break
 			}
 
-			if retry == 4 {
+			if retry == 8 {
 				checkErr = fmt.Errorf("Pod is not running : %v", pod)
-			}else{			
-				time.Sleep(60 * time.Second)
+			} else {
+				time.Sleep(30 * time.Second)
 			}
 			retry = retry + 1
 
@@ -152,12 +209,12 @@ var _ = ginkgo.Describe("Default Operator Tests:", func() {
 			metadata.Instance.AllPodRunning = true
 		}
 
-		Expect(err).NotTo(HaveOccurred())
+		Expect(checkErr).NotTo(HaveOccurred())
 
 	})
 
-
 })
+
 
 func CheckPodStatus(clientset *kubernetes.Clientset) (bool, corev1.Pod) {
 	pods, err := clientset.CoreV1().Pods("nfs-operator-test-harness").List(context.TODO(), metav1.ListOptions{})
@@ -165,9 +222,11 @@ func CheckPodStatus(clientset *kubernetes.Clientset) (bool, corev1.Pod) {
 		panic(err.Error())
 	}
 
-	for _,pod := range pods.Items {
-		if pod.Status.Phase != corev1.PodRunning {
-			return false, pod
+	for _, pod := range pods.Items {
+		if !(strings.Contains(pod.GetName(), "test-harness") || strings.Contains(pod.GetName(), "manifests")) {
+			if pod.Status.Phase != corev1.PodRunning {
+				return false, pod
+			}
 		}
 	}
 	return true, corev1.Pod{}

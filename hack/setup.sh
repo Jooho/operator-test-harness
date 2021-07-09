@@ -13,7 +13,7 @@ echo "
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: ${TEST_HARNESS_NAME}-sa
+  name: ${MANIFESTS_TEST}-sa
   namespace: ${TEST_NAMESPACE}" | oc create -f -
 
-oc adm policy add-cluster-role-to-user cluster-admin -z ${TEST_HARNESS_NAME}-sa -n ${TEST_NAMESPACE}
+oc adm policy add-cluster-role-to-user cluster-admin -z ${MANIFESTS_TEST}-sa -n ${TEST_NAMESPACE}

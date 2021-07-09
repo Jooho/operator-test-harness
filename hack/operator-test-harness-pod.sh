@@ -32,13 +32,13 @@ spec:
     volumeMounts:
     - mountPath: /test-run-results 
       name: test-run-results
-  serviceAccount: ${TEST_HARNESS_NAME}-sa
-  serviceAccountName: ${TEST_HARNESS_NAME}-sa
+  serviceAccount: ${MANIFESTS_TEST}-sa
+  serviceAccountName: ${MANIFESTS_TEST}-sa
   volumes:
   - name: test-run-results
     emptyDir: {}
 EOF
 
 else
-  oc delete pod ${TEST_HARNESS_NAME}-pod
+  oc delete pod ${TEST_HARNESS_NAME}-pod --ignore-not-found
 fi

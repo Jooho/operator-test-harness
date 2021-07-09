@@ -22,9 +22,9 @@ RUN mkdir -p /test-run-results &&\
 
 COPY --from=builder /go/src/github.com/red-hat-data-services/nfs-operator-test-harness/operator-test-harness.test  operator-test-harness.test
 
-# COPY template/prow-manifests-test-job.yaml /home/prow-manifests-test-job.yaml
+COPY template/manifests-test-job.yaml /home/manifests-test-job.yaml
 
-# RUN chmod +x prow-operator-test-harness.test
+RUN chmod +x operator-test-harness.test
 
 ENTRYPOINT [ "/operator-test-harness.test" ]
 

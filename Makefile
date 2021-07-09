@@ -24,6 +24,7 @@ image: build-image push-image
 test-setup:
 	./hack/setup.sh
 
+# test-X are for test purpose of OPERATOR-TEST-HARNESS
 # It deploys NFS provisioner operator as a test operator
 test-operator:
 	oc create -f ./hack/nfsprovisioner-operator/cs.yaml 
@@ -41,32 +42,33 @@ test-operator-clean:
 	
 
 job-test:
-	oc delete job $(TEST_HARNESS_NAME)-job -n $(TEST_NAMESPACE) --ignore-not-found
-	oc get sa $(TEST_HARNESS_NAME)-sa -n $(TEST_NAMESPACE) || $(MAKE) test-setup
+	oc delete job $(MANIFESTS_TEST)-job -n $(TEST_NAMESPACE) --ignore-not-found
+	oc get sa $(MANIFESTS_TEST)-sa -n $(TEST_NAMESPACE) || $(MAKE) test-setup
 	oc create -f ./template/manifests-test-job.yaml -n $(TEST_NAMESPACE) 
 
 job-test-clean:
-	oc delete sa $(TEST_HARNESS_NAME)-sa -n $(TEST_NAMESPACE) --ignore-not-found
-	oc delete rolebinding $(TEST_HARNESS_NAME)-rb -n $(TEST_NAMESPACE) --ignore-not-found
-	oc delete job $(TEST_HARNESS_NAME)-job -n $(TEST_NAMESPACE) --ignore-not-found
-	oc delete pod -l job_name=$(TEST_HARNESS_NAME)-job -n $(TEST_NAMESPACE) --ignore-not-found
-	oc delete pod jupyterhub-nb-admin  -n $(TEST_NAMESPACE) --ignore-not-found --force --grace-period=0
-	oc delete pvc jupyterhub-nb-admin-pvc -n $(TEST_NAMESPACE) --ignore-not-found
+	oc delete sa $(MANIFESTS_TEST)-sa -n $(TEST_NAMESPACE) --ignore-not-found
+	oc delete rolebinding $(MANIFESTS_TEST)-rb -n $(TEST_NAMESPACE) --ignore-not-found
+	oc delete job manifests-test-job -n $(TEST_NAMESPACE) --ignore-not-found
+	oc delete pod -l job_name=$(MANIFESTS_TEST)-job -n $(TEST_NAMESPACE) --ignore-not-found
+	oc delete pod jupyterhub-nb-admin -n redhat-ods-applications  --ignore-not-found --force --grace-period=0
+	oc delete pvc jupyterhub-nb-admin-pvc -n redhat-ods-applications  --ignore-not-found
 
 cluster-test:
 	oc delete pod $(TEST_HARNESS_NAME)-pod -n $(TEST_NAMESPACE) --ignore-not-found
-	oc get sa $(TEST_HARNESS_NAME)-sa -n $(TEST_NAMESPACE) || $(MAKE) test-setup
+	oc delete job manifests-test-job -n $(TEST_NAMESPACE) --ignore-not-found
+	oc delete pod -l job_name=$(MANIFESTS_TEST)-job -n $(TEST_NAMESPACE) --ignore-not-found
+	oc get sa $(MANIFESTS_TEST)-sa -n $(TEST_NAMESPACE) || $(MAKE) test-setup
 	./hack/operator-test-harness-pod.sh create
 
 	# oc run $(TEST_HARNESS_NAME)-pod --image=$(TEST_HARNESS_FULL_IMAGE_NAME) --restart=Never --attach -i --tty --serviceaccount $(TEST_HARNESS_NAME)-sa -n $(TEST_NAMESPACE) --env=JOB_PATH=/home/prow-manifest-test-job-pvc.yaml
 	# oc logs prow-operator-test-harness-pod -c prow -f
 
 cluster-test-clean:
-	# oc delete -f ./hack/operator-test-harness-pod.yaml -n $(TEST_NAMESPACE) --ignore-not-found
 	./hack/operator-test-harness-pod.sh delete
-	oc delete sa $(TEST_HARNESS_NAME)-sa -n $(TEST_NAMESPACE) --ignore-not-found
-	oc delete rolebinding $(TEST_HARNESS_NAME)-rb -n $(TEST_NAMESPACE) --ignore-not-found
-	oc delete job $(TEST_HARNESS_NAME)-job -n $(TEST_NAMESPACE) --ignore-not-found
-	oc delete pod -l job_name=$(TEST_HARNESS_NAME)-job -n $(TEST_NAMESPACE) --ignore-not-found
-	# oc delete pod jupyterhub-nb-admin  -n $(TEST_NAMESPACE) --ignore-not-found --force --grace-period=0
-	# oc delete pvc jupyterhub-nb-admin-pvc -n $(TEST_NAMESPACE) --ignore-not-found
+	oc delete sa $(MANIFESTS_TEST)-sa -n $(TEST_NAMESPACE) --ignore-not-found
+	oc delete rolebinding $(MANIFESTS_TEST)-rb -n $(TEST_NAMESPACE) --ignore-not-found
+	oc delete job manifests-test-job -n $(TEST_NAMESPACE) --ignore-not-found
+	oc delete pod -l job_name=$(MANIFESTS_TEST)-job -n $(TEST_NAMESPACE) --ignore-not-found
+	oc delete pod jupyterhub-nb-admin  -n redhat-ods-applications --ignore-not-found --force --grace-period=0
+	oc delete pvc jupyterhub-nb-admin-pvc -n redhat-ods-applications  --ignore-not-found

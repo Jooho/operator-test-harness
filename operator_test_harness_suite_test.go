@@ -14,15 +14,15 @@ import (
 
 const (
 	testResultsDirectory = "/test-run-results"
-	jUnitOutputFilename  = "junit-nfs-operator.xml"
+	jUnitOutputFilename  = "junit-operator.xml"
 	addonMetadataName    = "addon-metadata.json"
 )
 
-func TestNFSOperatorTestHarness(t *testing.T) {
+func TestOperatorTestHarness(t *testing.T) {
 	RegisterFailHandler(Fail)
 	jUnitReporter := reporters.NewJUnitReporter(filepath.Join(testResultsDirectory, jUnitOutputFilename))
 
-	RunSpecsWithDefaultAndCustomReporters(t, "NFS Operator Test Harness", []Reporter{jUnitReporter})
+	RunSpecsWithDefaultAndCustomReporters(t, "Operator Test Harness", []Reporter{jUnitReporter})
 
 	err := metadata.Instance.WriteToJSON(filepath.Join(testResultsDirectory, addonMetadataName))
 	if err != nil {

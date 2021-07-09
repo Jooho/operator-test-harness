@@ -14,6 +14,9 @@ type metadata struct {
 	// Whether all pods are running status or not. 
 	// Basically, operator expects all pods are running with a right situation.
 	AllPodRunning bool `json:"all-pod-running,string"`
+	// Check if job test specific for the isv operator succeed or not. 
+	// This job task will be provided by ISV.
+	SucceedJobTest bool `json:"succeed-job-test,string"`
 }
 
 // Instance is the singleton instance of metadata.
