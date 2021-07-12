@@ -32,8 +32,8 @@ spec:
     volumeMounts:
     - mountPath: /test-run-results 
       name: test-run-results
-  serviceAccount: ${MANIFESTS_TEST}-sa
-  serviceAccountName: ${MANIFESTS_TEST}-sa
+  serviceAccount: ${MANIFESTS_NAME}-sa
+  serviceAccountName: ${MANIFESTS_NAME}-sa
   volumes:
   - name: test-run-results
     emptyDir: {}

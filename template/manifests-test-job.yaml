@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: manifests-test-job
-  namespace: operator-test-harness
+  namespace: %TEST_NAMESPACE%
   labels:
     app:  manifests-test-job
     test: osd-e2e-test
@@ -27,11 +27,11 @@ spec:
               fieldPath: metadata.namespace
         - name: ARTIFACT_DIR
           value: /tmp/artifacts 
-        image: quay.io/jooholee/manifests-test:latest
+        image: %MANIFESTS_FULL_IMG_URL%
         name: manifests-test
         resources: {}
         volumeMounts:
-        - mountPath: /tmp/artifacts
+        - mountPath: %ARTIFACT_DIR%
           name: artifacts
       volumes:
       - emptyDir: {}

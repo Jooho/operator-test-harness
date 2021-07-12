@@ -117,7 +117,7 @@ var _ = ginkgo.Describe("ISV Operator Tests", func() {
 		retry := 0
 
 		for {
-			job, err := clientset.BatchV1().Jobs("operator-test-harness").Get(context.Background(), "manifests-test-job", metav1.GetOptions{})
+			job, err := clientset.BatchV1().Jobs("%TEST_NAMESPACE%").Get(context.Background(), "manifests-test-job", metav1.GetOptions{})
 			if err != nil {
 				//Failed
 				fmt.Printf("ERROR: Job is not created: %v", err)
@@ -164,12 +164,12 @@ var _ = ginkgo.Describe("ISV Operator Tests", func() {
 
 var _ = ginkgo.Describe("Default Operator Tests:", func() {
 
-	ginkgo.It("nfsprovisioners.cache.jhouse.com CRD exists", func() {
+	ginkgo.It("%OPERATOR_CRD_API% CRD exists", func() {
 		apiextensions, err := clientset.NewForConfig(config)
 		Expect(err).NotTo(HaveOccurred())
 
 		// Make sure the CRD exists
-		_, err = apiextensions.ApiextensionsV1().CustomResourceDefinitions().Get(context.TODO(), "nfsprovisioners.cache.jhouse.com", metav1.GetOptions{})
+		_, err = apiextensions.ApiextensionsV1().CustomResourceDefinitions().Get(context.TODO(), "%OPERATOR_CRD_API%", metav1.GetOptions{})
 
 		if err != nil {
 			metadata.Instance.FoundCRD = false
@@ -217,7 +217,7 @@ var _ = ginkgo.Describe("Default Operator Tests:", func() {
 
 
 func CheckPodStatus(clientset *kubernetes.Clientset) (bool, corev1.Pod) {
-	pods, err := clientset.CoreV1().Pods("nfs-operator-test-harness").List(context.TODO(), metav1.ListOptions{})
+	pods, err := clientset.CoreV1().Pods("%TEST_NAMESPACE%").List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		panic(err.Error())
 	}

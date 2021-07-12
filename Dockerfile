@@ -2,7 +2,7 @@ FROM registry.access.redhat.com/ubi8/go-toolset AS builder
 
 USER root
 
-ENV PKG=/go/src/github.com/red-hat-data-services/nfs-operator-test-harness/
+ENV PKG=/go/src/github.com/%GIT_REPO_ORG%/%TEST_HARNESS_NAME%/
 WORKDIR ${PKG}
 RUN chmod -R 755 ${PKG}
 
@@ -20,7 +20,7 @@ RUN mkdir -p /test-run-results &&\
     chown 1001:0 /test-run-results &&\
     chmod ug+rwx /test-run-results
 
-COPY --from=builder /go/src/github.com/red-hat-data-services/nfs-operator-test-harness/operator-test-harness.test  operator-test-harness.test
+COPY --from=builder /go/src/github.com/%GIT_REPO_ORG%/%TEST_HARNESS_NAME%/operator-test-harness.test  operator-test-harness.test
 
 COPY template/manifests-test-job.yaml /home/manifests-test-job.yaml
 

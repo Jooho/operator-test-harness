@@ -1,8 +1,3 @@
-# IMAGE_REGISTRY ?=$(DEFAULT_IMAGE_REGISTRY)
-# REGISTRY_NAMESPACE ?=$(DEFAULT_REGISTRY_NAMESPACE)
-# IMAGE_TAG ?=$(DEFAULT_IMAGE_TAG)
-# TEST_HARNESS_FULL_IMAGE_NAME=$(IMAGE_REGISTRY)/$(REGISTRY_NAMESPACE)/$(TEST_HARNESS_NAME):$(IMAGE_TAG)
-
 DIR := $(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 OUT_FILE := "$(DIR)$(TEST_HARNESS_NAME)"
 
@@ -12,11 +7,11 @@ build:
 
 build-image:
 	@echo "Building the $(TEST_HARNESS_NAME)"
-	podman build --format docker -t $(TEST_HARNESS_FULL_IMAGE_NAME) -f $(shell pwd)/Dockerfile .
+	podman build --format docker -t $(TEST_HARNESS_FULL_IMG_URL) -f $(shell pwd)/Dockerfile .
 
 push-image:
-	@echo "Pushing the $(TEST_HARNESS_NAME) image to $(IMAGE_REGISTRY)/$(REGISTRY_NAMESPACE)"
-	podman push $(TEST_HARNESS_FULL_IMAGE_NAME)
+	@echo "Pushing the $(TEST_HARNESS_NAME) image to $(IMG_REG_HOST)/$(IMG_REG_ORG)"
+	podman push $(TEST_HARNESS_FULL_IMG_URL)
 
 image: build-image push-image
 
@@ -61,7 +56,7 @@ cluster-test:
 	oc get sa $(MANIFESTS_TEST)-sa -n $(TEST_NAMESPACE) || $(MAKE) test-setup
 	./hack/operator-test-harness-pod.sh create
 
-	# oc run $(TEST_HARNESS_NAME)-pod --image=$(TEST_HARNESS_FULL_IMAGE_NAME) --restart=Never --attach -i --tty --serviceaccount $(TEST_HARNESS_NAME)-sa -n $(TEST_NAMESPACE) --env=JOB_PATH=/home/prow-manifest-test-job-pvc.yaml
+	# oc run $(TEST_HARNESS_NAME)-pod --image=$(TEST_HARNESS_FULL_IMG_URL) --restart=Never --attach -i --tty --serviceaccount $(TEST_HARNESS_NAME)-sa -n $(TEST_NAMESPACE) --env=JOB_PATH=/home/prow-manifest-test-job-pvc.yaml
 	# oc logs prow-operator-test-harness-pod -c prow -f
 
 cluster-test-clean:
