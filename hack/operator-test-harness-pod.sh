@@ -27,7 +27,7 @@ spec:
     - mountPath: /test-run-results 
       name: test-run-results
   - name: operator
-    image: ${TEST_HARNESS_FULL_IMAGE_NAME}
+    image: ${TEST_HARNESS_FULL_IMG_URL}
     imagePullPolicy: Always
     volumeMounts:
     - mountPath: /test-run-results 

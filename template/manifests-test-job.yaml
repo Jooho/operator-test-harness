@@ -37,4 +37,4 @@ spec:
       - emptyDir: {}
         name: artifacts
       restartPolicy: Never
-      serviceAccountName: manifests-test-sa
+      serviceAccountName: %MANIFESTS%-sa
