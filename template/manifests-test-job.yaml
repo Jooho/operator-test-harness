@@ -37,4 +37,4 @@ spec:
       - emptyDir: {}
         name: artifacts
       restartPolicy: Never
-      serviceAccountName: %MANIFESTS%-sa
+      serviceAccountName: %MANIFESTS_NAME%-sa

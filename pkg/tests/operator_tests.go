@@ -194,7 +194,13 @@ var _ = ginkgo.Describe("Default Operator Tests:", func() {
 				break
 			}
 
-			if retry == 8 {
+			if retry == 4 {
+				fmt.Println("Try to clean up not running pods")
+				if err = CleanUpNotRunningPod(clientset); err != nil {
+					checkErr = err
+				}
+				time.Sleep(30 * time.Second)
+			} else if retry == 8 {
 				checkErr = fmt.Errorf("Pod is not running : %v", pod)
 			} else {
 				time.Sleep(30 * time.Second)
@@ -215,7 +221,6 @@ var _ = ginkgo.Describe("Default Operator Tests:", func() {
 
 })
 
-
 func CheckPodStatus(clientset *kubernetes.Clientset) (bool, corev1.Pod) {
 	pods, err := clientset.CoreV1().Pods("%TEST_NAMESPACE%").List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
@@ -224,11 +229,34 @@ func CheckPodStatus(clientset *kubernetes.Clientset) (bool, corev1.Pod) {
 
 	for _, pod := range pods.Items {
 		if !(strings.Contains(pod.GetName(), "test-harness") || strings.Contains(pod.GetName(), "manifests")) {
-			if pod.Status.Phase != corev1.PodRunning {
-				return false, pod
+			containers := pod.Status.ContainerStatuses
+			for i := range containers {
+				if !containers[i].Ready {
+					return false, pod
+				}
 			}
 		}
 	}
 	return true, corev1.Pod{}
+
+}
+
+func CleanUpNotRunningPod(clientset *kubernetes.Clientset) error {
+	pods, err := clientset.CoreV1().Pods("%TEST_NAMESPACE%").List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		panic(err.Error())
+	}
+
+	for _, pod := range pods.Items {
+		if !(strings.Contains(pod.GetName(), "test-harness") || strings.Contains(pod.GetName(), "manifests")) {
+			containers := pod.Status.ContainerStatuses
+			for i := range containers {
+				if !containers[i].Ready {
+					return clientset.CoreV1().Pods("%TEST_NAMESPACE%").Delete(context.Background(), pod.GetName(), metav1.DeleteOptions{})
+				}
+			}
+		}
+	}
+	return nil
 
 }

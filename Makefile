@@ -57,7 +57,6 @@ cluster-test:
 	./hack/operator-test-harness-pod.sh create
 
 	# oc run $(TEST_HARNESS_NAME)-pod --image=$(TEST_HARNESS_FULL_IMG_URL) --restart=Never --attach -i --tty --serviceaccount $(TEST_HARNESS_NAME)-sa -n $(TEST_NAMESPACE) --env=JOB_PATH=/home/prow-manifest-test-job-pvc.yaml
-	# oc logs prow-operator-test-harness-pod -c prow -f
 
 cluster-test-clean:
 	./hack/operator-test-harness-pod.sh delete
