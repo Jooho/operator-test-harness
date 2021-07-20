@@ -135,9 +135,7 @@ var _ = ginkgo.Describe("ISV Operator Tests", func() {
 				metadata.Instance.SucceedJobTest = true
 				// fmt.Println("Job is successfully finished.")
 				break
-			}
-
-			if job.Status.Failed >= 2 {
+			} else	if job.Status.Failed > 2 {
 				checkErr = fmt.Errorf("ERROR: Job failed more than 2 times")
 				metadata.Instance.SucceedJobTest = false
 				if err := resources.WriteLogFromPod(job.Name, clientset); err != nil {
