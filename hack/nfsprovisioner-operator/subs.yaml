@@ -8,5 +8,5 @@ spec:
   name: nfs-provisioner-operator
   source: nfsprovisioner-catalog
   sourceNamespace: openshift-marketplace
-  startingCSV: nfs-provisioner-operator.v0.0.2
+  startingCSV: nfs-provisioner-operator.v0.0.3
 

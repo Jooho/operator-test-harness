@@ -5,4 +5,4 @@ metadata:
   namespace: openshift-marketplace
 spec:
   sourceType: grpc
-  image: quay.io/jooholee/nfs-provisioner-operator-index:0.0.2 
+  image: quay.io/jooholee/nfs-provisioner-operator-index:0.0.3 
