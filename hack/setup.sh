@@ -1,5 +1,8 @@
 #!/bin/bash
 source ./env.sh
+
+echo "Setup test environment"
+echo "Create a test namespace"
 if [[ $(oc project ${TEST_NAMESPACE} -q) != ${TEST_NAMESPACE} ]]
 then 
   echo "Project does NOT exist"
@@ -9,6 +12,7 @@ else
   echo "Project exist. Skip creation"
 fi
 
+echo "Create a cluster-admin ServiceAccount"
 echo "
 apiVersion: v1
 kind: ServiceAccount

@@ -29,6 +29,13 @@ spec:
   - name: operator
     image: ${TEST_HARNESS_FULL_IMG_URL}
     imagePullPolicy: Always
+    env:
+    - name: JUPYTERHUB_NAMESPACE
+      value: ${JUPYTERHUB_NAMESPACE}
+    - name: TEST_NAMESPACE             
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.namespace
     volumeMounts:
     - mountPath: /test-run-results 
       name: test-run-results

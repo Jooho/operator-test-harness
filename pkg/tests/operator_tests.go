@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"os"
 
 	"github.com/Jooho/operator-test-harness/pkg/metadata"
 	"github.com/Jooho/operator-test-harness/pkg/resources"
@@ -57,6 +58,12 @@ var _ = ginkgo.BeforeSuite(func() {
 	fmt.Println("...")
 	fmt.Println("")
 
+	// Default jupyterhub namespace is redhat-ods-applications which is provided by RHODS
+	jupyterhub_ns := "redhat-ods-applications"
+	if os.Getenv("JUPYTERHUB_NAMESPACE") != "" {
+		jupyterhub_ns = os.Getenv("JUPYTERHUB_NAMESPACE")
+	}
+		
 	// Get Route Host
 	routeClientset, err := routeclientset.NewForConfig(config)
 	if err != nil {
@@ -64,7 +71,7 @@ var _ = ginkgo.BeforeSuite(func() {
 	}
 	jupyterRoute := &routev1.Route{}
 	for {
-		tempJupyterRoute, err := routeClientset.Routes("redhat-ods-applications").Get(context.Background(), "jupyterhub", metav1.GetOptions{})
+		tempJupyterRoute, err := routeClientset.Routes(jupyterhub_ns).Get(context.Background(), "jupyterhub", metav1.GetOptions{})
 		if err != nil {
 			fmt.Println("-------------")
 			fmt.Printf("Jupyterhub route does not exist: %v\n", err)
@@ -100,7 +107,7 @@ var _ = ginkgo.BeforeSuite(func() {
 			fmt.Println("-------------")
 			fmt.Println("Juypterhub is not Ready")
 			fmt.Printf("Jupyter notebook URL response code: %v\n", response.StatusCode)
-			fmt.Println("Check it again after 5 secs")
+			fmt.Println("Check it again after 10 secs")
 			fmt.Println("")
 			time.Sleep(10 * time.Second)
 		}
@@ -117,7 +124,7 @@ var _ = ginkgo.Describe("ISV Operator Tests", func() {
 		retry := 0
 
 		for {
-			job, err := clientset.BatchV1().Jobs("%TEST_NAMESPACE%").Get(context.Background(), "manifests-test-job", metav1.GetOptions{})
+			job, err := clientset.BatchV1().Jobs(resources.TestNamespace).Get(context.Background(), "manifests-test-job", metav1.GetOptions{})
 			if err != nil {
 				//Failed
 				fmt.Printf("ERROR: Job is not created: %v", err)
@@ -220,7 +227,7 @@ var _ = ginkgo.Describe("Default Operator Tests:", func() {
 })
 
 func CheckPodStatus(clientset *kubernetes.Clientset) (bool, corev1.Pod) {
-	pods, err := clientset.CoreV1().Pods("%TEST_NAMESPACE%").List(context.TODO(), metav1.ListOptions{})
+	pods, err := clientset.CoreV1().Pods(resources.TestNamespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		panic(err.Error())
 	}
@@ -240,7 +247,7 @@ func CheckPodStatus(clientset *kubernetes.Clientset) (bool, corev1.Pod) {
 }
 
 func CleanUpNotRunningPod(clientset *kubernetes.Clientset) error {
-	pods, err := clientset.CoreV1().Pods("%TEST_NAMESPACE%").List(context.TODO(), metav1.ListOptions{})
+	pods, err := clientset.CoreV1().Pods(resources.TestNamespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		panic(err.Error())
 	}
@@ -250,7 +257,7 @@ func CleanUpNotRunningPod(clientset *kubernetes.Clientset) error {
 			containers := pod.Status.ContainerStatuses
 			for i := range containers {
 				if !containers[i].Ready {
-					return clientset.CoreV1().Pods("%TEST_NAMESPACE%").Delete(context.Background(), pod.GetName(), metav1.DeleteOptions{})
+					return clientset.CoreV1().Pods(resources.TestNamespace).Delete(context.Background(), pod.GetName(), metav1.DeleteOptions{})
 				}
 			}
 		}

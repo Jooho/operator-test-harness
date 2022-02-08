@@ -9,6 +9,7 @@ IMG_REG_ORG=jooholee
 TEST_NAMESPACE=${OPERATOR_NAME}
 TEST_HARNESS_IMG_TAG=latest
 MANIFESTS_IMG_TAG=latest
+JUPYTERHUB_NAMESPACE=opendatahub
 
 #---------------------------------------------
 # Do NOT CHANGE

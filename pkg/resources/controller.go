@@ -27,12 +27,12 @@ import (
 )
 
 const (
-	TestNamespace      = "operator-test-harness"
 	TestServiceAccount = "manifests-test-sa"
 	TestClusterRoleBinding    = "manifests-test-rb"
 )
 
 var (
+	TestNamespace = "redhat-ods-applications"
 	odhLabels = map[string]string{
 		"app":  "manifests-test",
 		"test": "osd-e2e-test",
@@ -42,6 +42,11 @@ var (
 
 //PrepareTest is for creating SA,RoleBinding,Job. Those objects are needed to execute odh manifests test image
 func PrepareTest(config *rest.Config) {
+
+	//Updtae TestNamespace for isv operator
+	if os.Getenv("TEST_NAMESPACE") != "" {
+		TestNamespace = os.Getenv("TEST_NAMESPACE")
+	}
 
 	// creates the clientset
 	clientset, err := kubernetes.NewForConfig(config)
