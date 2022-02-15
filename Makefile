@@ -55,8 +55,8 @@ isv-operator-deploy:
 isv-operator-clean:
 	oc project $(TEST_NAMESPACE)
 	oc delete -f ./hack/$(OPERATOR_NAME)/cr.yaml -n $(TEST_NAMESPACE)  --ignore-not-found
-	oc delete -f ./hack/$(OPERATOR_NAME)/subs.yaml -n $(TEST_NAMESPACE)  --ignore-not-found
-	oc delete csv -n openshift-operators $$(oc get csv |grep $(TEST_NAMESPACE)|cut -d" " -f1)
+	oc delete -f ./hack/$(OPERATOR_NAME)/subs.yaml --ignore-not-found
+	oc delete csv -n openshift-operators $$(oc get csv |grep $(PRODUCT_NAME)|cut -d" " -f1)
 	./hack/$(OPERATOR_NAME)/og.sh delete 
 	oc delete -f ./hack/$(OPERATOR_NAME)/cs.yaml  --ignore-not-found
 
