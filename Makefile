@@ -64,15 +64,17 @@ isv-operator-clean:
 job-test:
 	oc delete job $(MANIFESTS_NAME)-job -n $(TEST_NAMESPACE) --ignore-not-found
 	oc get sa $(MANIFESTS_NAME)-sa -n $(TEST_NAMESPACE) || $(MAKE) test-setup
-	oc create -f ./template/manifests-test-job.yaml -n $(TEST_NAMESPACE) 
+	oc create -f ./template/manifests-test-job-local.yaml -n $(TEST_NAMESPACE) 
+	./hack/manifest-job.sh create
 
 job-test-clean:
 	oc delete sa $(MANIFESTS_NAME)-sa -n $(TEST_NAMESPACE) --ignore-not-found
 	oc delete rolebinding $(MANIFESTS_NAME)-rb -n $(TEST_NAMESPACE) --ignore-not-found
-	oc delete job manifests-test-job -n $(TEST_NAMESPACE) --ignore-not-found
+	./hack/manifest-job.sh  delete
+	
 	oc delete pod -l job_name=$(MANIFESTS_NAME)-job -n $(TEST_NAMESPACE) --ignore-not-found
-	oc delete pod jupyterhub-nb-admin -n redhat-ods-applications  --ignore-not-found --force --grace-period=0
-	oc delete pvc jupyterhub-nb-admin-pvc -n redhat-ods-applications  --ignore-not-found
+	oc delete pod jupyterhub-nb-admin -n $(JUPYTERHUB_NAMESPACE)  --ignore-not-found --force --grace-period=0
+	oc delete pvc jupyterhub-nb-admin-pvc -n $(JUPYTERHUB_NAMESPACE)  --ignore-not-found
 
 # After job-test succeed, testing it on the cluster is the last step before you push the test harness image.
 cluster-test:
@@ -94,5 +96,5 @@ cluster-test-clean:
 	oc delete rolebinding $(MANIFESTS_NAME)-rb -n $(TEST_NAMESPACE) --ignore-not-found
 	oc delete job manifests-test-job -n $(TEST_NAMESPACE) --ignore-not-found
 	oc delete pod -l job_name=$(MANIFESTS_NAME)-job -n $(TEST_NAMESPACE) --ignore-not-found
-	oc delete pod jupyterhub-nb-admin  -n redhat-ods-applications --ignore-not-found --force --grace-period=0
-	oc delete pvc jupyterhub-nb-admin-pvc -n redhat-ods-applications  --ignore-not-found
+	oc delete pod jupyterhub-nb-admin  -n $(JUPYTERHUB_NAMESPACE) --ignore-not-found --force --grace-period=0
+	oc delete pvc jupyterhub-nb-admin-pvc -n $(JUPYTERHUB_NAMESPACE)  --ignore-not-found
