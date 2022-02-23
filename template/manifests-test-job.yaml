@@ -19,6 +19,8 @@ spec:
         - -c
         - $HOME/peak/installandtest.sh
         env:
+        - name: JUPYTERHUB_NAMESPACE
+          value: opendatahub
         - name: PATH
           value: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
         - name: TEST_NAMESPACE
