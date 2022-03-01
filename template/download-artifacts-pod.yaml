@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: download-artifacts-pod
+  labels:
+    app: download-artifacts-pod
+spec:
+  restartPolicy: Never
+  containers:
+  - name: ods-ci-test-results
+    command:
+    - /bin/bash
+    - -c
+    - 'trap : TERM INT; sleep 100'
+    image: docker.io/openshift/origin-cli
+    imagePullPolicy: IfNotPresent
+    volumeMounts:
+    - mountPath: %ARTIFACT_DIR%
+      name: artifacts
+  serviceAccount: %MANIFESTS_NAME%-sa
+  serviceAccountName: %MANIFESTS_NAME%-sa
+  volumes:
+  - name: artifacts
+    persistentVolumeClaim:
+      claimName: ods-ci
+  

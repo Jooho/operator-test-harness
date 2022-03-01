@@ -6,10 +6,10 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
-	"os"
 
 	"github.com/Jooho/operator-test-harness/pkg/metadata"
 	"github.com/Jooho/operator-test-harness/pkg/resources"
@@ -53,64 +53,79 @@ func init() {
 
 var _ = ginkgo.BeforeSuite(func() {
 	defer ginkgo.GinkgoRecover()
-	fmt.Println("---------------------------------------")
-	fmt.Println("Wait for Jupyterhub notebook is ready.")
-	fmt.Println("...")
-	fmt.Println("")
 
-	// Default jupyterhub namespace is redhat-ods-applications which is provided by RHODS
-	jupyterhub_ns := "redhat-ods-applications"
-	if os.Getenv("JUPYTERHUB_NAMESPACE") != "" {
-		jupyterhub_ns = os.Getenv("JUPYTERHUB_NAMESPACE")
+	jupyterhub_test := false
+	if os.Getenv("JUPYTER_NOTEBOOK_PATH") != "" {
+		jupyterhub_test = true
 	}
-		
-	// Get Route Host
-	routeClientset, err := routeclientset.NewForConfig(config)
-	if err != nil {
-		panic(err.Error())
-	}
-	jupyterRoute := &routev1.Route{}
-	for {
-		tempJupyterRoute, err := routeClientset.Routes(jupyterhub_ns).Get(context.Background(), "jupyterhub", metav1.GetOptions{})
+	if jupyterhub_test {
+
+		fmt.Println("---------------------------------------")
+		fmt.Println("Wait for Jupyterhub notebook is ready.")
+		fmt.Println("...")
+		fmt.Println("")
+
+		// Default jupyterhub namespace is redhat-ods-applications which is provided by RHODS
+		jupyterhub_ns := "redhat-ods-applications"
+		if os.Getenv("JUPYTERHUB_NAMESPACE") != "" {
+			jupyterhub_ns = os.Getenv("JUPYTERHUB_NAMESPACE")
+		}
+
+		// Get Route Host
+		routeClientset, err := routeclientset.NewForConfig(config)
 		if err != nil {
-			fmt.Println("-------------")
-			fmt.Printf("Jupyterhub route does not exist: %v\n", err)
-			fmt.Println("Check it again after 5 secs")
-			fmt.Println("")
-			time.Sleep(10 * time.Second)
-		} else {
-			jupyterRoute = tempJupyterRoute
-			fmt.Println("Jupyterhub route created")
-			break
+			panic(err.Error())
 		}
-	}
-
-	jupyterRouteHost := jupyterRoute.Spec.Host
-	// fmt.Printf("%v", jupyterRoute.Spec.Host)
-
-	//Wait until Jupyterhub route return 200 OK
-	transCfg := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // ignore expired SSL certificates
-	}
-	client := &http.Client{Transport: transCfg}
-
-	for {
-		response, err := client.Get("https://" + jupyterRouteHost)
-		if err != nil {
-			fmt.Printf("%v", err)
+		jupyterRoute := &routev1.Route{}
+		for {
+			tempJupyterRoute, err := routeClientset.Routes(jupyterhub_ns).Get(context.Background(), "jupyterhub", metav1.GetOptions{})
+			if err != nil {
+				fmt.Println("-------------")
+				fmt.Printf("Jupyterhub route does not exist: %v\n", err)
+				fmt.Println("Check it again after 5 secs")
+				fmt.Println("")
+				time.Sleep(10 * time.Second)
+			} else {
+				jupyterRoute = tempJupyterRoute
+				fmt.Println("Jupyterhub route created")
+				break
+			}
 		}
 
-		if response.StatusCode == http.StatusOK {
-			fmt.Println("Juypterhub is Ready so test starts")
-			break
-		} else {
-			fmt.Println("-------------")
-			fmt.Println("Juypterhub is not Ready")
-			fmt.Printf("Jupyter notebook URL response code: %v\n", response.StatusCode)
-			fmt.Println("Check it again after 10 secs")
-			fmt.Println("")
-			time.Sleep(10 * time.Second)
+		jupyterRouteHost := jupyterRoute.Spec.Host
+		// fmt.Printf("%v", jupyterRoute.Spec.Host)
+
+		//Wait until Jupyterhub route return 200 OK
+		transCfg := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // ignore expired SSL certificates
 		}
+		client := &http.Client{Transport: transCfg}
+
+		for {
+			response, err := client.Get("https://" + jupyterRouteHost)
+			if err != nil {
+				fmt.Printf("%v", err)
+			}
+
+			if response.StatusCode == http.StatusOK {
+				fmt.Println("Juypterhub is Ready so test starts")
+				break
+			} else {
+				fmt.Println("-------------")
+				fmt.Println("Juypterhub is not Ready")
+				fmt.Printf("Jupyter notebook URL response code: %v\n", response.StatusCode)
+				fmt.Println("Check it again after 10 secs")
+				fmt.Println("")
+				time.Sleep(10 * time.Second)
+			}
+		}
+	} else {
+
+		fmt.Println("----------------------------------")
+		fmt.Println("Skip for Jupyterhub notebook test.")
+		fmt.Println("----------------------------------")
+		fmt.Println("")
+
 	}
 })
 
@@ -142,7 +157,7 @@ var _ = ginkgo.Describe("ISV Operator Tests", func() {
 				metadata.Instance.SucceedJobTest = true
 				// fmt.Println("Job is successfully finished.")
 				break
-			} else	if job.Status.Failed > 2 {
+			} else if job.Status.Failed > 2 {
 				checkErr = fmt.Errorf("ERROR: Job failed more than 2 times")
 				metadata.Instance.SucceedJobTest = false
 				if err := resources.WriteLogFromPod(job.Name, clientset); err != nil {

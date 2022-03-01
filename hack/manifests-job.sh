@@ -25,7 +25,7 @@ spec:
       - command:
         - /bin/sh
         - -c
-        - $HOME/peak/installandtest.sh
+        - \$HOME/peak/installandtest.sh
         env:
         - name: JUPYTERHUB_NAMESPACE
           value: ${JUPYTERHUB_NAMESPACE}
@@ -41,7 +41,7 @@ spec:
         name: manifests-test
         resources: {}
         volumeMounts:
-        - mountPath: /tmp/artifacts
+        - mountPath: ${ARTIFACT_DIR}
           name: artifacts
       volumes:
       - emptyDir: {}
@@ -51,5 +51,5 @@ spec:
 EOF
 
 else
-  oc delete pod ${TEST_HARNESS_NAME}-pod --ignore-not-found
+  oc delete job manifests-test-job --force --ignore-not-found
 fi

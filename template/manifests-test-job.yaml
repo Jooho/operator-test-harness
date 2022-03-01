@@ -26,7 +26,7 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
         - name: ARTIFACT_DIR
-          value: /tmp/artifacts 
+          value: ${ARTIFACT_DIR}
         image: %MANIFESTS_FULL_IMG_URL%
         name: manifests-test
         resources: {}
@@ -34,7 +34,8 @@ spec:
         - mountPath: %ARTIFACT_DIR%
           name: artifacts
       volumes:
-      - emptyDir: {}
-        name: artifacts
+      - name: artifacts
+        persistentVolumeClaim:
+          claimName: ods-ci
       restartPolicy: Never
       serviceAccountName: %MANIFESTS_NAME%-sa
