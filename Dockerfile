@@ -29,7 +29,8 @@ COPY --from=builder /go/src/github.com/%GIT_REPO_ORG%/%TEST_HARNESS_NAME%/operat
 COPY --from=builder /go/src/github.com/Jooho/starburst-operator-test-harness/oc  /usr/local/bin/oc
 RUN  chmod +x /usr/local/bin/oc
 
-COPY template/manifests-test-job.yaml /home/manifests-test-job.yaml
+COPY env.sh /home/env.sh
+COPY template/* /home/.
 COPY ./hack/run-test.sh  /run-test.sh
 
 RUN chmod +x run-test.sh

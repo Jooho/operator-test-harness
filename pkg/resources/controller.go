@@ -32,7 +32,7 @@ const (
 )
 
 var (
-	TestNamespace = "redhat-ods-applications"
+	TestNamespace = ""
 	odhLabels = map[string]string{
 		"app":  "manifests-test",
 		"test": "osd-e2e-test",
@@ -42,7 +42,7 @@ var (
 
 //PrepareTest is for creating SA,RoleBinding,Job. Those objects are needed to execute odh manifests test image
 func PrepareTest(config *rest.Config) {
-
+	TestNamespace = getCurrentNamespace()
 	//Updtae TestNamespace for isv operator
 	if os.Getenv("TEST_NAMESPACE") != "" {
 		TestNamespace = os.Getenv("TEST_NAMESPACE")
@@ -250,4 +250,25 @@ func WriteLogFromPod(jobName string, clientset *kubernetes.Clientset) error {
 	logFile.Close()
 	stream.Close()
 	return nil
+}
+
+func getCurrentNamespace() string{
+	current_namespace_file_:="/run/secrets/kubernetes.io/serviceaccount/namespace"
+	currentNS :=""
+	f, err := os.OpenFile(current_namespace_file_, os.O_RDONLY, os.ModePerm)
+	if err != nil {
+			fmt.Printf("open namespace file error: %v", err)
+			panic(err.Error())
+	}
+	defer f.Close()
+	sc := bufio.NewScanner(f)
+	for sc.Scan() {
+		currentNS=sc.Text()
+	}
+	fmt.Printf("Current Namespace is %s\n",currentNS)
+	if err := sc.Err(); err != nil {
+		fmt.Printf("scan namespace file error: %v", err)
+		panic(err.Error())
+	}
+	return currentNS
 }

@@ -10,4 +10,6 @@ oc wait --for=condition=complete job/manifests-test-job
 
 echo "Trasfering the artifacts dump to Test Harness Pod"
 oc create -f /home/download-artifacts-pod.yaml
+oc wait --for=condition=Ready pod/download-artifacts-pod
+sleep 10
 oc rsync download-artifacts-pod:${ARTIFACT_DIR} /test-run-results/

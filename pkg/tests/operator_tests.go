@@ -53,7 +53,8 @@ func init() {
 
 var _ = ginkgo.BeforeSuite(func() {
 	defer ginkgo.GinkgoRecover()
-
+	resources.PrepareTest(config)
+	
 	jupyterhub_test := false
 	if os.Getenv("JUPYTER_NOTEBOOK_PATH") != "" {
 		jupyterhub_test = true
@@ -132,7 +133,6 @@ var _ = ginkgo.BeforeSuite(func() {
 var _ = ginkgo.Describe("ISV Operator Tests", func() {
 
 	ginkgo.It("Kubernetes objects & Integration test (Jupyterhub)", func() {
-		resources.PrepareTest(config)
 		clientset, err := kubernetes.NewForConfig(config)
 		Expect(err).NotTo(HaveOccurred())
 		var checkErr error = nil

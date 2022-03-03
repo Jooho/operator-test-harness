@@ -30,7 +30,7 @@ test-setup:
 odh-deploy:
 	oc project $(JUPYTERHUB_NAMESPACE) || oc new-project $(JUPYTERHUB_NAMESPACE)
 	oc get subs opendatahub-operator -n openshift-operators || oc create -f ./hack/odh-operator/subs.yaml
-	sleep 10
+	sleep 20
 	oc create -f ./hack/odh-operator/cr.yaml -n $(JUPYTERHUB_NAMESPACE)
 
 
@@ -70,7 +70,6 @@ isv-operator-clean:
 job-test:
 	oc delete job $(MANIFESTS_NAME)-job -n $(TEST_NAMESPACE) --ignore-not-found
 	oc get sa $(MANIFESTS_NAME)-sa -n $(TEST_NAMESPACE) || $(MAKE) test-setup
-	oc create -f ./template/manifests-test-job-local.yaml -n $(TEST_NAMESPACE) 
 	./hack/manifests-job.sh create
 
 job-test-clean:
